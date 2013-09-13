@@ -1,0 +1,63 @@
+RELEASE="precise"
+HOSTNAME=$RELEASE
+VARIANT="minbase"
+ROOTPASSWD="media mochi"
+
+# Directories
+CACHEDIR="/tmp/vmcache"
+VMDIR=$CACHEDIR/vm-$RELEASE
+ROOTDIR=$VMDIR/rootfs
+
+# Shortcuts
+CHROOT="chroot $ROOTDIR"
+INSTALL="apt-get install -y"
+
+$INSTALL debootstrap
+
+TARBALL=$CACHEDIR/$RELEASE-tarball.tar
+debootstrap --make-tarball=$TARBALL $RELEASE $ROOTDIR
+debootstrap --variant=$VARIANT --unpack-tarball=$TARBALL $RELEASE $ROOTDIR
+
+echo "root:$ROOTPASSWD" | $CHROOT chpasswd
+
+$CHROOT locale-gen en_US.UTF-8
+
+$CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls u*.conf); do mv $f $f.orig; done'
+$CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls tty[2-9].conf); do mv $f $f.orig; done'
+$CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls plymouth*.conf); do mv $f $f.orig; done'
+$CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls hwclock*.conf); do mv $f $f.orig; done'
+$CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls module*.conf); do mv $f $f.orig; done'
+
+if [ $RELEASE != "lucid" ]; then
+    sed -i 's/^.*emission handled.*$/echo Emitting lo/' $ROOTDIR/etc/network/if-up.d/upstart
+fi
+
+echo $HOSTNAME > $ROOTDIR/etc/hostname
+echo "127.0.0.1 localhost $HOSTNAME" > $ROOTDIR/etc/hosts
+cat <<EOF > $ROOTDIR/etc/network/interfaces
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet dhcp
+EOF
+
+cp fstab $VMDIR/fstab
+
+cp default.lxc $VMDIR/config.lxc
+MAC=`(date; cat /proc/interrupts) | md5sum | sed -r 's/^(.{10}).*$/\1/; s/([0-9a-f]{2})/\1:/g; s/:$//;'`
+cat <<EOF >> $VMDIR/config.lxc
+lxc.network.hwaddr = $MAC
+lxc.rootfs = $ROOTDIR
+lxc.mount  = $VMDIR/fstab
+EOF
+
+echo "deb http://archive.ubuntu.com/ubuntu $RELEASE universe multiverse" >> $ROOTDIR/etc/apt/sources.list
+
+$CHROOT apt-get update
+$CHROOT $INSTALL dialog
+$CHROOT $INSTALL dhcp3-client
