@@ -4,9 +4,7 @@ VARIANT="minbase"
 ROOTPASSWD="media mochi"
 
 # Directories
-CACHEDIR="/tmp/vmcache"
-VMDIR=$CACHEDIR/vm-$RELEASE
-ROOTDIR=$VMDIR/rootfs
+ROOTDIR=$INSTALLDIR/rootfs
 
 # Shortcuts
 CHROOT="chroot $ROOTDIR"
@@ -14,7 +12,7 @@ INSTALL="apt-get install -y"
 
 $INSTALL debootstrap
 
-TARBALL=$CACHEDIR/$RELEASE-tarball.tar
+TARBALL=$INSTALLDIR/$RELEASE-tarball.tar
 debootstrap --make-tarball=$TARBALL $RELEASE $ROOTDIR
 debootstrap --variant=$VARIANT --unpack-tarball=$TARBALL $RELEASE $ROOTDIR
 
@@ -46,14 +44,14 @@ auto eth0
 iface eth0 inet dhcp
 EOF
 
-cp fstab $VMDIR/fstab
+cp fstab $INSTALLDIR/fstab
 
-cp default.lxc $VMDIR/config.lxc
+cp default.lxc $INSTALLDIR/config.lxc
 MAC=`(date; cat /proc/interrupts) | md5sum | sed -r 's/^(.{10}).*$/\1/; s/([0-9a-f]{2})/\1:/g; s/:$//;'`
-cat <<EOF >> $VMDIR/config.lxc
+cat <<EOF >> $INSTALLDIR/config.lxc
 lxc.network.hwaddr = $MAC
 lxc.rootfs = $ROOTDIR
-lxc.mount  = $VMDIR/fstab
+lxc.mount  = $INSTALLDIR/fstab
 EOF
 
 echo "deb http://archive.ubuntu.com/ubuntu $RELEASE universe multiverse" >> $ROOTDIR/etc/apt/sources.list
