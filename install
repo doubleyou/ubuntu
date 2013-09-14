@@ -45,16 +45,6 @@ auto eth0
 iface eth0 inet dhcp
 EOF
 
-cp fstab $INSTALLDIR/fstab
-
-cp default.lxc $INSTALLDIR/config.lxc
-MAC=`(date; cat /proc/interrupts) | md5sum | sed -r 's/^(.{10}).*$/\1/; s/([0-9a-f]{2})/\1:/g; s/:$//;'`
-cat <<EOF >> $INSTALLDIR/config.lxc
-lxc.network.hwaddr = $MAC
-lxc.rootfs = $ROOTDIR
-lxc.mount  = $INSTALLDIR/fstab
-EOF
-
 echo "deb http://archive.ubuntu.com/ubuntu $RELEASE universe multiverse" >> $ROOTDIR/etc/apt/sources.list
 
 $CHROOT apt-get update
