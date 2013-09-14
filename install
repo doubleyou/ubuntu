@@ -1,4 +1,6 @@
 #!/bin/bash
+INSTALLDIR=$1
+
 RELEASE="precise"
 HOSTNAME=$RELEASE
 VARIANT="minbase"
