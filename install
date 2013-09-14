@@ -18,6 +18,7 @@ $INSTALL debootstrap
 TARBALL=$INSTALLDIR/$RELEASE-tarball.tar
 debootstrap --make-tarball=$TARBALL $RELEASE $ROOTDIR
 debootstrap --variant=$VARIANT --unpack-tarball=$TARBALL $RELEASE $ROOTDIR
+rm $TARBALL
 
 echo "root:$ROOTPASSWD" | $CHROOT chpasswd
 
