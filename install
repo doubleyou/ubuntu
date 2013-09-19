@@ -25,7 +25,7 @@ echo "root:$ROOTPASSWD" | $CHROOT chpasswd
 $CHROOT locale-gen en_US.UTF-8
 
 $CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls u*.conf); do mv $f $f.orig; done'
-$CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls tty[5-9].conf); do mv $f $f.orig; done'
+$CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls tty[2-9].conf); do mv $f $f.orig; done'
 $CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls plymouth*.conf); do mv $f $f.orig; done'
 $CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls hwclock*.conf); do mv $f $f.orig; done'
 $CHROOT /bin/bash -c 'cd /etc/init; for f in $(ls module*.conf); do mv $f $f.orig; done'
